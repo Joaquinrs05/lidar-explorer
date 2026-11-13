@@ -1,0 +1,41 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Secrets (Supabase service key lives here, never in the frontend)
+.env
+.env.*
+!.env.example
+
+# Benchmark output (the history lives in Supabase)
+/bench/out
+
+# Supabase CLI
+/supabase/.temp
+/supabase/.branches
+
+# IDEs and editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/coverage
+testem.log
+__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
