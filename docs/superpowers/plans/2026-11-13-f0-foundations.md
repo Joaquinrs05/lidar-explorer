@@ -1053,7 +1053,7 @@ TDD exception: configuration. The proof is a green CI run on the PR and a loadin
 - The public repo `Joaquinrs05/lidar-explorer` exists, and `origin` points to it. Both are done.
 - `gh` with `gh auth login` is optional. Without it, the owner does Steps 5 and 7 in the GitHub web UI; each step gives both routes. Claude follows CI through the public REST API, which needs no login.
 
-- [ ] **Step 1: Write the workflow**
+- [x] **Step 1: Write the workflow**
 
 `.github/workflows/ci.yml`:
 
@@ -1090,7 +1090,7 @@ jobs:
 
 Delete `.github/workflows/.gitkeep`.
 
-- [ ] **Step 2: Write `vercel.json`**
+- [x] **Step 2: Write `vercel.json`**
 
 ```json
 {
@@ -1104,13 +1104,13 @@ Delete `.github/workflows/.gitkeep`.
 
 Vercel takes Node `26.x` from `engines`.
 
-- [ ] **Step 3: Add the badge under the README title**
+- [x] **Step 3: Add the badge under the README title**
 
 ```md
 [![CI](https://github.com/Joaquinrs05/lidar-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/Joaquinrs05/lidar-explorer/actions/workflows/ci.yml)
 ```
 
-- [ ] **Step 4: Verify locally and commit**
+- [x] **Step 4: Verify locally and commit**
 
 Run: `npm run format && npm run verify`
 Expected: exit 0. Prettier also parses the YAML and the JSON.

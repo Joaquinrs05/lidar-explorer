@@ -1,5 +1,7 @@
 # lidar-explorer
 
+[![CI](https://github.com/Joaquinrs05/lidar-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/Joaquinrs05/lidar-explorer/actions/workflows/ci.yml)
+
 A simulated robot explores an unknown maze with a 2D lidar and **noisy odometry**, localizing itself and building the map at the same time (SLAM). Everything runs in the browser: no install, no server.
 
 > **Status: F0 · foundations.** The app shell, the guardrails and CI are in place; the robot arrives in F1.
