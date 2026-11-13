@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx ng generate *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git switch*)",
+      "Bash(git add*)",
+      "Bash(git commit*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git reset --hard*)",
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Edit(./.env)",
+      "Edit(./.env.local)"
+    ],
+    "ask": [
+      "Bash(npm install*)",
+      "Bash(npm i *)",
+      "Bash(npm uninstall*)",
+      "Bash(git push*)",
+      "Bash(git merge*)",
+      "Bash(gh pr*)",
+      "Bash(rm -rf*)"
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  }
+}
