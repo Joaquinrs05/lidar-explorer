@@ -99,7 +99,7 @@ Every guard runs in `npm run verify`, which CI runs on every pull request.
 | Boundaries | Imports the matrix forbids, deep imports past a module's `index.ts`, and app code that reaches an internal module | `architecture/eslint-boundaries.mjs`, loaded by ESLint |
 | Architecture test | The same rules on resolved paths, plus folders missing from the matrix, packages imported by the core, and import cycles | `architecture/architecture.spec.ts` |
 | Coverage gate | Core code under 90 % of lines, branches, functions or statements | `vitest.core.config.ts` |
-| CI | Any failure above, on every pull request; `main` accepts only pull requests with a green check | `.github/workflows/ci.yml` and the ruleset on `main` |
+| CI | Any failure above, on every pull request to `main` and on every push to it | `.github/workflows/ci.yml` |
 | Permissions | Claude editing a guardrail file without asking, force pushes, and reading `.env` files | `.claude/settings.json` |
 
 ## Adding a module

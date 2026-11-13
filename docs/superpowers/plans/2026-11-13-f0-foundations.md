@@ -1148,7 +1148,7 @@ Expected: `verify` passes.
 
 Expected: `conclusion` is `success`. The jobs endpoint of that run names the failing step, if any.
 
-- [ ] **Step 6: Owner: connect Vercel**
+- [x] **Step 6: Owner: connect Vercel**
 
 1. In Vercel: Add New → Project → import the repo, keep the settings that `vercel.json` provides, and Deploy.
 2. The first production deployment builds `main`, which has no app yet, so it fails. That is expected until F0 merges.
@@ -1157,6 +1157,8 @@ Expected: `conclusion` is `success`. The jobs endpoint of that run names the fai
 Expected: the preview shows the "lidar-explorer" heading.
 
 - [ ] **Step 7: Protect `main` with a ruleset (skip it if "Protect main" already exists)**
+
+> Skipped on 2026-11-13 by the owner's decision: `main` stays unprotected. CI still runs on every pull request; see the Task 6 ruling in the ledger.
 
 ```bash
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
