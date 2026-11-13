@@ -144,26 +144,28 @@ The owner approves these with the plan:
   - `npm start` (dev server on port 4200) and `npm run build`, which writes `dist/lidar-explorer/browser/`;
   - the root component `App` in `src/app/app.ts` (selector `app-root`, `protected readonly title = signal('lidar-explorer')`).
 
-- [ ] **Step 1: Confirm the runtime**
+- [x] **Step 1: Confirm the runtime**
 
 Run: `node --version && npm view @angular/cli@22.2.7 engines.node`
 Expected: `v26.…` and `^22.22.3 || ^24.15.0 || >=26.0.0`. If Node is not 26, stop: the toolchain decision depends on it.
 
-- [ ] **Step 2: Generate the workspace in a temporary folder and merge it in**
+- [x] **Step 2: Generate the workspace in a temporary folder and merge it in**
 
 ```bash
 TMP="$(mktemp -d)"
-npx -y @angular/cli@22.2.7 new lidar-explorer --directory "$TMP/app" \
+(cd "$TMP" && npx -y @angular/cli@22.2.7 new lidar-explorer --directory app \
   --style=scss --ssr=false --ai-config=none --routing --zoneless \
-  --test-runner=vitest --skip-git --skip-install --package-manager=npm --interactive=false
+  --test-runner=vitest --skip-git --skip-install --package-manager=npm --interactive=false)
 rm "$TMP/app/README.md" "$TMP/app/.gitignore"   # ours win
 cp -r "$TMP/app/." .
 rm -r "$TMP" src/app/.gitkeep
 ```
 
+Corrected during execution: `ng new` resolves `--directory` against the current folder even when the path is absolute, so the command runs inside the temporary folder (see the Task 1 ruling in the ledger).
+
 Expected: `git status --short README.md CLAUDE.md .gitignore` prints nothing, and `git status --short` lists only the new files and the deleted `src/app/.gitkeep`.
 
-- [ ] **Step 3: Pin the environment and install**
+- [x] **Step 3: Pin the environment and install**
 
 Create `.nvmrc` containing `26` and `.npmrc` containing `save-exact=true`, then:
 
@@ -183,7 +185,7 @@ npm install
 
 Expected: `grep -nE '"[~^]' package.json` prints nothing.
 
-- [ ] **Step 4: Write the failing app test**
+- [x] **Step 4: Write the failing app test**
 
 In `src/app/app.spec.ts`, make `should render title` assert the exact heading:
 
@@ -194,7 +196,7 @@ expect(compiled.querySelector('h1')?.textContent).toBe('lidar-explorer');
 Run: `npx ng test --watch=false`
 Expected: FAIL, `expected 'Hello, lidar-explorer' to be 'lidar-explorer'`.
 
-- [ ] **Step 5: Replace the welcome page with the empty shell**
+- [x] **Step 5: Replace the welcome page with the empty shell**
 
 `src/app/app.html`:
 
@@ -211,7 +213,7 @@ In `src/index.html`, set `<title>lidar-explorer</title>`.
 Run: `npx ng test --watch=false`
 Expected: `Tests  2 passed (2)`.
 
-- [ ] **Step 6: Set up Prettier**
+- [x] **Step 6: Set up Prettier**
 
 `ng new` already added `.prettierrc` and `prettier`. Create `.prettierignore`:
 
@@ -224,7 +226,7 @@ package-lock.json
 Run: `npx prettier --write . && npx prettier --check .`
 Expected: `All matched files use Prettier code style!`
 
-- [ ] **Step 7: Build and serve**
+- [x] **Step 7: Build and serve**
 
 Run: `npm run build`
 Expected: `Application bundle generation complete.`, and `dist/lidar-explorer/browser/index.html` exists.
@@ -232,7 +234,7 @@ Expected: `Application bundle generation complete.`, and `dist/lidar-explorer/br
 Run `npm start` in the background and wait for `Local: http://localhost:4200/`. Then run `curl -s http://localhost:4200/ | grep -o '<app-root></app-root>'`.
 Expected: `<app-root></app-root>`. Stop the server.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A && git status --short
@@ -255,7 +257,7 @@ git commit -m "chore(toolchain): scaffold the Angular 22 app on Node 26" -m "Co-
   - `tsconfig.core.json` (ES2022 library, `types: []`, `src/core/**/*.ts` without specs), which Task 3 extends;
   - the flat config in `eslint.config.js`, which Task 4 extends with `...boundaryConfigs()`.
 
-- [ ] **Step 1: Strict compiler options and the core project**
+- [x] **Step 1: Strict compiler options and the core project**
 
 In `tsconfig.json`, add `"strict": true`, `"noUncheckedIndexedAccess": true` and `"noEmit": true` to `compilerOptions`, and add `{ "path": "./tsconfig.core.json" }` to `references`.
 
@@ -274,14 +276,14 @@ Create `tsconfig.core.json`:
 
 `ES2022` is not arbitrary: the app also compiles the core (with ES2022 plus the DOM), so the core may not use newer APIs either.
 
-- [ ] **Step 2: Add angular-eslint and switch to ESM**
+- [x] **Step 2: Add angular-eslint and switch to ESM**
 
 Run: `npx ng add angular-eslint@22.6.0 --skip-confirmation`
 Expected: `CREATE eslint.config.js`, `UPDATE package.json`, `UPDATE angular.json` and `Packages installed successfully.`
 
 Then run the pin command from Task 1 Step 3 (both of its lines), and `npm pkg set type=module`.
 
-- [ ] **Step 3: Replace `eslint.config.js`**
+- [x] **Step 3: Replace `eslint.config.js`**
 
 ```js
 // @ts-check
@@ -380,11 +382,11 @@ export default defineConfig([
 ]);
 ```
 
-- [ ] **Step 4: Make the generated `src/main.ts` pass `strictTypeChecked`**
+- [x] **Step 4: Make the generated `src/main.ts` pass `strictTypeChecked`**
 
 Change the catch handler to `.catch((error: unknown) => { console.error(error); });`. The arrow-shorthand void return and the untyped catch variable are the two errors the strict config reports.
 
-- [ ] **Step 5: Check that lint, build and tests are clean**
+- [x] **Step 5: Check that lint, build and tests are clean**
 
 Run: `npx prettier --write . && npx eslint . --max-warnings=0`
 Expected: exit 0, with no output.
@@ -392,7 +394,7 @@ Expected: exit 0, with no output.
 Run: `npx ng build && npx ng test --watch=false`
 Expected: the build completes, and `Tests  2 passed (2)`.
 
-- [ ] **Step 6: Plant violations; every guard must fire**
+- [x] **Step 6: Plant violations; every guard must fire**
 
 Create `src/core/math/planted.ts` with: a `Math.random()` call behind `// eslint-disable-next-line no-restricted-properties`; a `// @ts-ignore` line; a `document.title` read; `function flagged(verbose: boolean, a: number, b: number, c: number, d: number)`; a function with 10 `if` returns (complexity 11); and a function with 60 statement lines.
 
@@ -410,12 +412,12 @@ Expected, one line each:
 Run: `npx tsc -p tsconfig.core.json`
 Expected: `error TS2584: Cannot find name 'document'`.
 
-- [ ] **Step 7: Remove the plant**
+- [x] **Step 7: Remove the plant**
 
 Run: `rm src/core/math/planted.ts && npx eslint . --max-warnings=0`
 Expected: exit 0. Until Task 3 adds the first core file, `tsc -p tsconfig.core.json` reports `TS18003: No inputs were found`; that is expected.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A && git status --short
