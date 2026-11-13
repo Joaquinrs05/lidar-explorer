@@ -444,12 +444,12 @@ git commit -m "chore(lint): enforce strict typing and clean-code ESLint rules" -
   - the scripts `test`, `test:core`, `test:app`, `typecheck`, `lint`, `format`, `format:check`, `verify:fast` and `verify`;
   - `test.include` in `vitest.core.config.ts`, which Task 4 extends.
 
-- [ ] **Step 1: Install the test dependencies**
+- [x] **Step 1: Install the test dependencies**
 
 Run: `npm install -D "@vitest/coverage-v8@$(node -p "require('vitest/package.json').version")" fast-check@4.10.2`
 Expected: `package.json` gains both packages at exact versions, and the coverage version equals the `vitest` version.
 
-- [ ] **Step 2: Configure the core test run and limit `ng test` to the app**
+- [x] **Step 2: Configure the core test run and limit `ng test` to the app**
 
 `vitest.core.config.ts`:
 
@@ -499,7 +499,7 @@ Then:
 - in `tsconfig.spec.json`, set `"include": ["src/**/*.d.ts", "src/app/**/*.spec.ts"]`;
 - in `angular.json`, under `projects.lidar-explorer.architect.test`, add `"options": { "include": ["app/**/*.spec.ts"] }`. The path is relative to `src/`. Without it, `ng test` also runs the core specs.
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 `src/core/math/angle.spec.ts`:
 
@@ -593,23 +593,23 @@ describe('angleDiff', () => {
 });
 ```
 
-- [ ] **Step 4: Run it and watch it fail**
+- [x] **Step 4: Run it and watch it fail**
 
 Run: `npx vitest run --config vitest.core.config.ts`
 Expected: FAIL, `Failed to resolve import "./angle"`.
 
-- [ ] **Step 5: Implement `normalizeAngle` and `angleDiff` in `src/core/math/angle.ts`, and export them from `src/core/math/index.ts`**
+- [x] **Step 5: Implement `normalizeAngle` and `angleDiff` in `src/core/math/angle.ts`, and export them from `src/core/math/index.ts`**
 
 Approach: take `angle % (2π)`, then shift once by 2π if the result falls outside (−π, π], and add `0` at the end so that `-0` becomes `0`. Non-finite input propagates as `NaN` through `%`.
 
 Give both functions TSDoc with the unit and the range. `index.ts` opens with a `@packageDocumentation` comment ("Math primitives for the core: angles and planar poses.") and re-exports both functions.
 
-- [ ] **Step 6: Run it and watch it pass**
+- [x] **Step 6: Run it and watch it pass**
 
 Run: `npx vitest run --config vitest.core.config.ts --coverage`
 Expected: `Tests  18 passed (18)`, and 100 % coverage for `angle.ts`.
 
-- [ ] **Step 7: Add the scripts and document them**
+- [x] **Step 7: Add the scripts and document them**
 
 Set the scripts in `package.json`. Keep `ng`, `start`, `build` and `watch` as `ng new` wrote them.
 
@@ -627,7 +627,7 @@ Set the scripts in `package.json`. Keep `ng`, `start`, `build` and `watch` as `n
 
 Replace the Commands section of `CLAUDE.md` with a table of these commands, one line each on what they do. Keep the note that `npm run bench` arrives in F7.
 
-- [ ] **Step 8: Plant uncovered code; the coverage gate must fire**
+- [x] **Step 8: Plant uncovered code; the coverage gate must fire**
 
 Create `src/core/math/planted.ts` exporting an untested three-line function, for example `untested(a: number, b: number): number`.
 
@@ -637,12 +637,12 @@ Expected: exit 1, with `ERROR: Coverage for lines (…%) does not meet global th
 Run: `rm src/core/math/planted.ts && npm run test:core`
 Expected: exit 0.
 
-- [ ] **Step 9: Run the full verification**
+- [x] **Step 9: Run the full verification**
 
 Run: `rm src/core/math/.gitkeep && npm run format && npm run verify`
 Expected: exit 0. Every stage passes, and the output ends with `Application bundle generation complete.`
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add -A && git status --short

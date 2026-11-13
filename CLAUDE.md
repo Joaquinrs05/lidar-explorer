@@ -112,4 +112,18 @@ After `finishing-a-development-branch`:
 
 ## Commands
 
-These are created in F0; update this section when they exist. Expected set: `npm start`, `npm test`, `npm run test:core`, `npm run test:app`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run verify:fast` and `npm run verify`. `npm run bench` comes later, in F7.
+| Command | What it does |
+|---|---|
+| `npm start` | Dev server on http://localhost:4200 |
+| `npm run build` | Production build into `dist/lidar-explorer/browser` |
+| `npm test` | Core tests, then app tests |
+| `npm run test:core` | Vitest in Node for `src/core`, with the 90 % coverage gate |
+| `npm run test:app` | `ng test` (Vitest with jsdom) for `src/app` |
+| `npm run typecheck` | `tsc` on the app, app-spec, core, core-spec and tools projects |
+| `npm run lint` | ESLint over the repo; any warning fails |
+| `npm run format` | Prettier writes the formatting |
+| `npm run format:check` | Prettier checks the formatting |
+| `npm run verify:fast` | `typecheck`, `lint` and `test:core` |
+| `npm run verify` | `format:check`, `verify:fast`, `test:app` and `build`; CI runs this |
+
+`npm run bench` comes later, in F7.
