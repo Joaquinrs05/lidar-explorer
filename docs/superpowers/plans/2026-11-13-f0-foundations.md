@@ -1120,7 +1120,7 @@ git add -A && git status --short
 git commit -m "ci: verify every pull request and configure Vercel" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 5: Push and open the phase PR as a draft**
+- [x] **Step 5: Push and open the phase PR as a draft**
 
 ```bash
 git push
