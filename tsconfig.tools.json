@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "lib": ["ES2022"], "types": [] },
-  "include": ["vitest.core.config.ts"]
+  "compilerOptions": { "lib": ["ES2022"], "types": [], "allowJs": true, "checkJs": true },
+  "include": ["vitest.core.config.ts", "architecture/**/*.ts", "architecture/**/*.mjs"]
 }

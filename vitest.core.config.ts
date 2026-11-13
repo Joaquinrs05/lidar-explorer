@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     name: 'core',
     environment: 'node',
-    include: ['src/core/**/*.spec.ts'],
+    include: ['src/core/**/*.spec.ts', 'architecture/**/*.spec.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/core/**/*.ts'],

@@ -676,7 +676,7 @@ git commit -m "feat(math): add angle helpers on a Vitest core setup" -m "Co-Auth
     - `checkImports(files: readonly SourceFile[]): Violation[]`;
     - `findCycle(graph: ReadonlyMap<string, readonly string[]>): string[] | undefined`.
 
-- [ ] **Step 1: Write the matrix, copied from `CLAUDE.md`**
+- [x] **Step 1: Write the matrix, copied from `CLAUDE.md`**
 
 `architecture/modules.mjs`:
 
@@ -722,13 +722,13 @@ export const PUBLIC_MODULES = Object.freeze(['run', 'msgs']);
 export const CORE_TEST_PACKAGES = Object.freeze(['vitest', 'fast-check']);
 ```
 
-- [ ] **Step 2: Bring `architecture/` into the tools project and the core test run**
+- [x] **Step 2: Bring `architecture/` into the tools project and the core test run**
 
 In `tsconfig.tools.json`, add `"allowJs": true, "checkJs": true` and set `"include": ["vitest.core.config.ts", "architecture/**/*.ts", "architecture/**/*.mjs"]`. With `checkJs`, the `.mjs` files are type-checked from their JSDoc.
 
 In `vitest.core.config.ts`, set `include: ['src/core/**/*.spec.ts', 'architecture/**/*.spec.ts']`. Coverage stays on `src/core` only.
 
-- [ ] **Step 3: Write the failing test**
+- [x] **Step 3: Write the failing test**
 
 `architecture/architecture.spec.ts`:
 
@@ -801,12 +801,12 @@ describe('each rule fires on its fixture', () => {
 });
 ```
 
-- [ ] **Step 4: Run it and watch it fail**
+- [x] **Step 4: Run it and watch it fail**
 
 Run: `npx vitest run --config vitest.core.config.ts architecture`
 Expected: FAIL, `Failed to resolve import "./import-rules"`.
 
-- [ ] **Step 5: Implement `source-files.ts` and `import-rules.ts`**
+- [x] **Step 5: Implement `source-files.ts` and `import-rules.ts`**
 
 `source-files.ts`:
 - `importsOf` returns `ts.preProcessFile(text, true, true).importedFiles` mapped to `fileName`. That covers type-only imports, re-exports and dynamic `import()`.
@@ -825,12 +825,12 @@ Expected: FAIL, `Failed to resolve import "./import-rules"`.
 
 Keep every function within the lint limits. The prototype needed eight small functions.
 
-- [ ] **Step 6: Run it and watch it pass**
+- [x] **Step 6: Run it and watch it pass**
 
 Run: `npx vitest run --config vitest.core.config.ts architecture`
 Expected: `Tests  17 passed (17)`.
 
-- [ ] **Step 7: Derive the ESLint boundaries from the matrix**
+- [x] **Step 7: Derive the ESLint boundaries from the matrix**
 
 `architecture/eslint-boundaries.mjs`:
 
@@ -891,7 +891,7 @@ In `eslint.config.js`, import `{ boundaryConfigs }` from `'./architecture/eslint
 Run: `npx eslint . --max-warnings=0`
 Expected: exit 0.
 
-- [ ] **Step 8: Plant `slam → sim`; both guards must fire**
+- [x] **Step 8: Plant `slam → sim`; both guards must fire**
 
 Create `src/core/slam/planted.ts`: `import { step } from '../sim'; export const planted = step;`
 
@@ -903,12 +903,12 @@ Expected: FAIL in `the codebase > breaks no import rule`, with a violation whose
 
 Run: `rm src/core/slam/planted.ts`. Keep `src/core/slam/.gitkeep`.
 
-- [ ] **Step 9: Run the full verification**
+- [x] **Step 9: Run the full verification**
 
 Run: `npm run format && npm run verify`
 Expected: exit 0, with 35 core tests (18 + 17).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add -A && git status --short

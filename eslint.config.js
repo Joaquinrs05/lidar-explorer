@@ -3,6 +3,7 @@ import eslint from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
+import { boundaryConfigs } from './architecture/eslint-boundaries.mjs';
 
 const HEADLESS = 'The core is headless (CLAUDE.md rule 3)';
 const coreBannedGlobals = [
@@ -115,6 +116,7 @@ export default defineConfig([
       ],
     },
   },
+  ...boundaryConfigs(),
   {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
