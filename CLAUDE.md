@@ -9,7 +9,7 @@ A simulated differential-drive robot explores an unknown maze with a 2D lidar an
 ## Where things live
 
 - **Phase designs and plans:** `docs/superpowers/specs/` and `docs/superpowers/plans/`, the Superpowers defaults.
-- **Architecture and conventions:** `docs/architecture.md` and `docs/conventions.md`, written in F0. Until they exist, the reference is the F0 design: `docs/superpowers/specs/2026-11-13-f0-foundations-design.md`.
+- **Architecture and conventions:** `docs/architecture.md` and `docs/conventions.md`. The F0 design behind them is `docs/superpowers/specs/2026-11-13-f0-foundations-design.md`.
 - **Project plan, phase progress, hours and decisions:** the owner's Obsidian vault, note `Software/Explorador lidar/Explorador lidar.md` (vault root `~/Documents/ObsidianVault`). Each machine grants access to that folder in `.claude/settings.local.json`. Vault notes are in Spanish.
 - **Language:** talk to the owner in Spanish. Code, comments, commits, plans and repo docs are in English.
 

@@ -931,7 +931,7 @@ TDD exception: documentation. The checks are `npm run verify` and the presence c
 - Consumes: everything Tasks 1–4 built. The docs describe what exists, and link to the matrix rather than copy it as truth.
 - Produces: `docs/conventions.md` with the review checklist that every later plan's Review Focus points to.
 
-- [ ] **Step 1: Write `docs/architecture.md`**
+- [x] **Step 1: Write `docs/architecture.md`**
 
 Sections, in this order:
 1. **Purpose.** One paragraph, with a link to the F0 design.
@@ -956,7 +956,7 @@ Sections, in this order:
    - the permissions.
 9. **Adding a module.** Create the folder and its `index.ts`, add the matrix entry, and write the tests. Name what fails when a step is skipped.
 
-- [ ] **Step 2: Write `docs/conventions.md`**
+- [x] **Step 2: Write `docs/conventions.md`**
 
 Sections:
 1. **Units and frames.**
@@ -981,7 +981,7 @@ Sections:
 9. **Commits.** `type(scope): summary`, with the module as scope, and the co-author trailer.
 10. **Review checklist.** The `CLAUDE.md` Review Focus block, verbatim.
 
-- [ ] **Step 3: Write the agent guides**
+- [x] **Step 3: Write the agent guides**
 
 `src/core/CLAUDE.md` (about 25 lines):
 - Read `docs/architecture.md` and `docs/conventions.md` first.
@@ -1006,7 +1006,7 @@ Sections:
 - No `any`, no `as unknown`, and no library without approval.
 - Tests run with `npm run test:app`.
 
-- [ ] **Step 4: Update `README.md` and `CLAUDE.md`**
+- [x] **Step 4: Update `README.md` and `CLAUDE.md`**
 
 README:
 - Status: "F0 · foundations: the app shell, the guardrails and CI are in place; the robot arrives in F1."
@@ -1020,12 +1020,12 @@ README:
 
 `CLAUDE.md` "Where things live": the architecture and conventions entry now points at the two docs and drops "Until they exist…".
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `npm run verify && ls docs/architecture.md docs/conventions.md src/core/CLAUDE.md src/app/CLAUDE.md && grep -c "How it's built" README.md`
 Expected: exit 0, the four paths are listed, and the count is `1`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git status --short
