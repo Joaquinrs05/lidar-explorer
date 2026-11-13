@@ -2,70 +2,114 @@
 
 ## What this is
 
-A simulated differential-drive robot explores an unknown maze using a 2D lidar and noisy odometry, building a map while localizing itself (SLAM). Everything runs in the browser. It is a portfolio project, not a coursework one.
+A simulated differential-drive robot explores an unknown maze with a 2D lidar and noisy odometry, building the map while it localizes itself (SLAM). Everything runs in the browser. It is a portfolio project.
 
-**The Council's condition:** the robot must localize with *noisy* odometry. If the map is built from the simulator's true pose it is mapping, not SLAM, and the project loses its value. Everything below protects that.
+**The Council's condition:** the robot must localize with *noisy* odometry. If the map is built from the simulator's true pose, it is mapping, not SLAM, and the project loses its value. The architecture and the guardrails below exist to protect that.
 
-## Where the plan lives
+## Where things live
 
-Plan, phases, progress checklist, hours log and decisions are in the Obsidian vault, not in this repo:
-`Software/Explorador lidar/Explorador lidar.md` (vault root: `~/Documents/ObsidianVault`).
-
-- **At the start of a session:** read that note (current phase and next task) and this file.
-- **At the end:** tick the checkboxes under *Progreso*, add the hours to *Registro de horas* and any decision to *Decisiones*.
-- Vault notes are in Spanish. Code, comments, commits and this repo's docs are in English.
+- **Phase designs and plans:** `docs/superpowers/specs/` and `docs/superpowers/plans/`, the Superpowers defaults.
+- **Architecture and conventions:** `docs/architecture.md` and `docs/conventions.md`, written in F0. Until they exist, the reference is the F0 design: `docs/superpowers/specs/2026-11-13-f0-foundations-design.md`.
+- **Project plan, phase progress, hours and decisions:** the owner's Obsidian vault, note `Software/Explorador lidar/Explorador lidar.md` (vault root `~/Documents/ObsidianVault`). Each machine grants access to that folder in `.claude/settings.local.json`. Vault notes are in Spanish.
+- **Language:** talk to the owner in Spanish. Code, comments, commits, plans and repo docs are in English.
 
 ## Stack
 
-- Angular (standalone components, signals), Canvas 2D for drawing. No Three.js: it is 2D.
-- TypeScript `strict`. No `any`, no `as unknown`.
-- Core in pure TypeScript under `src/core/`: no Angular, no DOM. It must run unchanged in a Web Worker and in Node (benchmark).
-- Vitest for tests, ESLint, Prettier.
-- Supabase (Postgres + RLS) only for the benchmark history. The demo must work without it.
-- Hosting: Vercel. Repo: GitHub `Joaquinrs05/lidar-explorer`, public, MIT.
+- Angular 22: standalone, zoneless, signals, OnPush, `inject()`. Drawing in Canvas 2D.
+- Core in pure TypeScript under `src/core/`: no Angular, no DOM, no Node APIs. It runs unchanged in the browser, in a Web Worker and in Node.
+- Vitest and fast-check. ESLint with typescript-eslint `strictTypeChecked` and angular-eslint.
+- Supabase only for the benchmark history (F7). Hosting on Vercel. GitHub `Joaquinrs05/lidar-explorer`, public, MIT.
 
-## Layout
+## Core modules and allowed dependencies
 
-```
-src/core/        pure TS, no Angular/DOM
-  math/          seeded RNG, angle helpers, Pose2D
-  msgs/          ROS 2-shaped types: LaserScan, Odometry, OccupancyGrid, Twist, PoseArray, Path
-  world/         seeded maze generator (rooms + openings) and a few hand-made maps
-  sim/           differential robot, raycast lidar with noise, noisy odometry, collisions
-  driver/        RobotDriver interface and SimDriver (a real driver plugs in here later)
-  mapping/       log-odds occupancy grid, Bresenham
-  localization/  particle filter: odometry motion model, likelihood field, low-variance resampling
-  slam/          ties mapping and localization together
-  planning/      obstacle inflation, A* (8 neighbours), pure pursuit, safety stop
-  exploration/   frontiers, goal selection, unreachable blacklist, state machine
-  eval/          metrics against ground truth
-src/app/         Angular UI
-src/worker/      Web Worker wrapper around the core
-bench/           Node benchmark: 3 sizes x 10 seeds, headless
-supabase/        SQL migrations for `bench_runs`
-```
+| Module | May import |
+|---|---|
+| math | — |
+| msgs | math |
+| driver (ports only) | msgs |
+| world | math |
+| sim | math, msgs, world, driver |
+| mapping | math, msgs |
+| localization | math, msgs, mapping |
+| slam | math, msgs, mapping, localization |
+| planning | math, msgs, mapping |
+| control | math, msgs |
+| exploration | math, msgs, mapping, planning |
+| autonomy | math, msgs, driver, slam, planning, control, exploration |
+| eval | math, msgs, world, mapping |
+| run | everything above (composition root) |
 
-Data flow: `SimDriver` → (LaserScan + Odometry) → `slam` → (map + pose) → `exploration` → (goal) → `planning` (A*) → (path) → control → (Twist) → `SimDriver`. The true pose goes only to `eval/` and to the "ground truth" layer of the UI.
+`src/app`, `src/worker` and `bench/` use `run/` plus the `msgs` types. A module is imported only through its `index.ts`. The matrix lives in `architecture/modules.mjs` (created in F0), and both ESLint and an architecture test enforce it.
 
 ## Hard rules
 
-1. **Anti-cheat.** `slam/`, `localization/`, `mapping/`, `planning/` and `exploration/` must never import from `sim/`. Enforced by an ESLint rule and a CI test. Do not weaken either to make something compile; fix the dependency.
-2. **Seed everything.** Same seed, same run: maze, noise, particles, all of it. Never call `Math.random()` in `src/core/`; use the seeded RNG from `math/`. A run must be reproducible from `?seed=42`.
-3. **Headless first.** The core does not know a UI exists. The UI only renders snapshots.
-4. **ROS 2-shaped messages.** Keep `msgs/` field names and semantics aligned with ROS 2 so the same panel can later serve a real robot or a ROS 2 bridge.
-5. **Three map modes in the UI:** "True pose (reference)", "Pure odometry" and "SLAM" (the default). The reference mode must be labelled as reference, never as SLAM.
-6. **Lidar parameters come from the RPLIDAR C1 datasheet.** Verify against the datasheet before hardcoding; do not guess.
-7. **Tests before "done".** Each phase has acceptance tests in the plan. A phase is not finished until they pass in CI.
+1. **Anti-cheat.** The autonomy modules (`mapping`, `localization`, `slam`, `planning`, `control`, `exploration`, `autonomy`) never import `sim`, `world`, `eval` or `run`. The robot never sees the true pose or the true maze.
+2. **Seed everything.** No `Math.random()` in `src/core/`. Use the seeded `Rng` from `math/` and `fork()` one stream per subsystem. The same seed gives the same run (`?seed=42`).
+3. **Headless core.** No DOM, no timers, no wall clock and no `console` in `src/core/`. The time step `dt` is fixed. The UI only renders snapshots.
+4. **Units and frames.**
+   - SI units everywhere in the core. Anything non-SI carries a unit suffix, such as `angleDeg`.
+   - Frames follow ROS REP-103.
+   - Angles are normalized to (−π, π] and averaged circularly.
+   - The canvas y-flip happens only in the renderer.
+5. **ROS 2-shaped messages** in `msgs/`: `LaserScan`, `Odometry`, `OccupancyGrid`, `Twist`, `PoseArray`, `Path`.
+6. **Interfaces only at real seams:** the driver ports, `GroundTruthSource`, `Rng`, `SimulationPort` and `BenchResultsRepository`. Any other abstraction waits for its second implementation.
+7. **No new dependency** without the owner's approval.
+8. **Never weaken a guardrail** to get green: a lint rule, tsconfig strictness, a coverage threshold, the dependency matrix or CI. If one blocks you, stop and explain.
+9. **Lidar parameters** come from the RPLIDAR C1 datasheet. Verify them; never guess.
 
-## Working style
+## Superpowers overrides
 
-- One phase, one branch (e.g. `fase-3-mcl`), one PR to `main`. Do not commit directly to `main`.
-- Commits carry the Claude co-author trailer, so AI authorship is declared. The README says so too.
-- Claude writes most of the code; the owner decides and tests. The owner must be able to explain every part, so keep the code readable and, when a phase closes, help write the short concept note in the vault (`Conceptos/`: a software analogy, the key idea, 3 interview questions). Never create those notes empty in advance.
-- If a phase goes over its hours by more than 50 %, stop and re-plan instead of pushing on.
-- Out of scope for v1: loop closure, per-particle maps (GMapping-style), global localization / kidnapped robot, a maze editor, real hardware, a ROS 2 bridge. Do not add them unasked.
-- The owner creates the Supabase project and connects Vercel (they need the account). Never put the Supabase service key in the frontend.
+These are the owner's instructions. They take precedence over the Superpowers skills.
+
+- **Cycle per phase:** `brainstorming` → design doc → `writing-plans` → plan → `executing-plans` → final review → `finishing-a-development-branch`. One phase is one branch (`fase-N-slug`) and one PR to `main`. Split big phases (F3, F4) into two plans.
+- **Execute inline with `executing-plans`.** Do not use `subagent-driven-development` unless the owner asks for it.
+- **Stop after every task.** After each task's commit, stop and report to the owner, in Spanish:
+  - what changed;
+  - how to see it (a command or a screen);
+  - a 3-line explanation the owner could give in an interview;
+  - one interview question about it.
+
+  Then wait for the owner's "sigue" before starting the next task. This overrides "do not pause between tasks".
+- **No worktrees.** Work in place on the phase branch. Never commit to `main`.
+- **Pre-approved TDD exceptions:** scaffolding and configuration files. For a guardrail, the failing test is a planted violation that must fail; then remove it.
+- **Every plan copies the two blocks below** into its *Global Constraints* and *Review Focus* sections.
+- **Debugging:** reproduce every bug with a fixed seed and a failing test before fixing it.
+
+### Global Constraints (copy into every plan)
+
+- Hard rules 1–9 above.
+- **Definition of Done for each task:**
+  - tests written first and seen failing;
+  - `npm run verify` green, once it exists;
+  - TSDoc on every export of a module's `index.ts`;
+  - the core coverage threshold met;
+  - one conventional commit, `type(scope): summary`, where the scope is the module, with a `Co-Authored-By` trailer.
+- **Clean code limits enforced by ESLint:** functions of at most 40 lines, at most 4 parameters (otherwise an options object) and cyclomatic complexity of at most 10.
+
+### Review Focus (copy into every plan)
+
+- **SOLID and clean code:**
+  - one responsibility per module and per class;
+  - extension through ports, not edits to `autonomy`;
+  - no speculative interfaces and no duplicated logic;
+  - no boolean flag parameters;
+  - no magic numbers: tunables live in an `XxxConfig` with a default, a unit and a source;
+  - readonly messages, and state only in classes with invariants;
+  - names from the domain.
+- **Tests:** they assert behaviour, not implementation. Seeds are explicit. Invariants get property-based tests (fast-check). Ports get contract tests.
+- **Dependencies:** the matrix and the anti-cheat rule hold, and nothing is imported past a module's `index.ts`.
+- **Scope:** nothing outside the task's files unless a ruling is recorded and explained.
+
+## Closing a phase
+
+After `finishing-a-development-branch`:
+1. Update the vault note:
+   - tick the phase under *Progreso*;
+   - add the hours to *Registro de horas* (ask the owner for them);
+   - add the decisions to *Decisiones*;
+   - update *Estado*.
+2. Write with the owner a short concept note, in Spanish, in `Software/Explorador lidar/Conceptos/`: a software analogy, the key idea and 3 interview questions. Never create these notes in advance.
 
 ## Commands
 
-Not created yet; they arrive with phase F0. Expected set: `npm start`, `npm test`, `npm run lint`, `npm run build`, `npm run bench`. Update this section when they exist.
+These are created in F0; update this section when they exist. Expected set: `npm start`, `npm test`, `npm run test:core`, `npm run test:app`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run verify:fast` and `npm run verify`. `npm run bench` comes later, in F7.
