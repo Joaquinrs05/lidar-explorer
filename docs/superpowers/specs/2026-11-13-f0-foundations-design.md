@@ -30,14 +30,14 @@ The first version of this plan proposed a hand-made harness (custom hooks, comma
 
 ## 1. Method: the Superpowers cycle in every phase
 
-| Step | Skill | Output | Owner's gate |
-|---|---|---|---|
-| Design | `brainstorming` | `docs/superpowers/specs/YYYY-MM-DD-fN-<topic>-design.md`, committed | Approves the design, which is presented in parts |
-| Plan | `writing-plans` | `docs/superpowers/plans/YYYY-MM-DD-fN-<topic>.md`. Each task lists its files, its interfaces, the failing test's code, the implementation, the commands with their expected output, and the commit | **Approves the plan and, with it, the tests** |
-| Execution | `executing-plans` and `test-driven-development` | Each task: red test (seen failing), green, refactor and commit. Progress is kept in the plan's ledger | **After every task:** reviews and tries it. Claude does not continue until the owner says "sigue" |
-| Review | Final reviewer: a fresh subagent on the most capable model | Findings ranked by severity; Critical and Important ones get fixed | — |
-| Branch close | `finishing-a-development-branch` | Green tests, push, and a PR with a Vercel preview | Chooses PR or merge |
-| Phase close (ours) | Checklist in `CLAUDE.md` | Vault note up to date (progress, hours, decisions) and a `Conceptos/` note | Gives the hours and reviews the note |
+| Step               | Skill                                                      | Output                                                                                                                                                                                             | Owner's gate                                                                                      |
+| ------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Design             | `brainstorming`                                            | `docs/superpowers/specs/YYYY-MM-DD-fN-<topic>-design.md`, committed                                                                                                                                | Approves the design, which is presented in parts                                                  |
+| Plan               | `writing-plans`                                            | `docs/superpowers/plans/YYYY-MM-DD-fN-<topic>.md`. Each task lists its files, its interfaces, the failing test's code, the implementation, the commands with their expected output, and the commit | **Approves the plan and, with it, the tests**                                                     |
+| Execution          | `executing-plans` and `test-driven-development`            | Each task: red test (seen failing), green, refactor and commit. Progress is kept in the plan's ledger                                                                                              | **After every task:** reviews and tries it. Claude does not continue until the owner says "sigue" |
+| Review             | Final reviewer: a fresh subagent on the most capable model | Findings ranked by severity; Critical and Important ones get fixed                                                                                                                                 | —                                                                                                 |
+| Branch close       | `finishing-a-development-branch`                           | Green tests, push, and a PR with a Vercel preview                                                                                                                                                  | Chooses PR or merge                                                                               |
+| Phase close (ours) | Checklist in `CLAUDE.md`                                   | Vault note up to date (progress, hours, decisions) and a `Conceptos/` note                                                                                                                         | Gives the hours and reviews the note                                                              |
 
 Two more skills act during any step:
 
@@ -49,38 +49,38 @@ Two more skills act during any step:
 **How the earlier hand-made harness maps onto Superpowers:**
 
 - The task card becomes a plan task.
-- Its `scope` becomes the task's *Files*.
-- Its signatures become the task's *Interfaces*.
-- The Definition of Done and the hard rules go into *Global Constraints*.
-- The reviewer's checklist goes into *Review Focus*.
+- Its `scope` becomes the task's _Files_.
+- Its signatures become the task's _Interfaces_.
+- The Definition of Done and the hard rules go into _Global Constraints_.
+- The reviewer's checklist goes into _Review Focus_.
 
 ## 2. A scalable architecture
 
 Hexagonal architecture (ports and adapters), with the core in pure TypeScript. Compared with the `src/core/` layout in the vault plan, four things change:
 
 - `driver/` holds only ports. `SimDriver` moves to `sim/`, so importing a port never pulls in the simulator.
-- New `control/` module: pure pursuit and the safety stop, separate from A*.
+- New `control/` module: pure pursuit and the safety stop, separate from A\*.
 - New `autonomy/` module: the behaviours (go to a point in F5, explore in F6, return home).
 - New `run/` module: the composition root, which wires world, simulator, autonomy and evaluation together. The UI, the worker and the benchmark use it.
 
 The dependency matrix lives in a single file, `architecture/modules.mjs`. Both the ESLint rule and the architecture test are derived from it.
 
-| Module | May import |
-|---|---|
-| math | — |
-| msgs | math |
-| driver (ports) | msgs |
-| world | math |
-| sim | math, msgs, world, driver |
-| mapping | math, msgs |
-| localization | math, msgs, mapping |
-| slam | math, msgs, mapping, localization |
-| planning | math, msgs, mapping |
-| control | math, msgs |
-| exploration | math, msgs, mapping, planning |
-| autonomy | math, msgs, driver, slam, planning, control, exploration |
-| eval | math, msgs, world, mapping |
-| run | all of the above |
+| Module         | May import                                               |
+| -------------- | -------------------------------------------------------- |
+| math           | —                                                        |
+| msgs           | math                                                     |
+| driver (ports) | msgs                                                     |
+| world          | math                                                     |
+| sim            | math, msgs, world, driver                                |
+| mapping        | math, msgs                                               |
+| localization   | math, msgs, mapping                                      |
+| slam           | math, msgs, mapping, localization                        |
+| planning       | math, msgs, mapping                                      |
+| control        | math, msgs                                               |
+| exploration    | math, msgs, mapping, planning                            |
+| autonomy       | math, msgs, driver, slam, planning, control, exploration |
+| eval           | math, msgs, world, mapping                               |
+| run            | all of the above                                         |
 
 **Anti-cheat rule:** the autonomy modules (`mapping`, `localization`, `slam`, `planning`, `control`, `exploration` and `autonomy`) do not import `sim`, `world`, `eval` or `run`. The robot can see neither its true pose nor the true maze. Outside the core, `src/app`, `src/worker` and `bench/` use `run/` and the `msgs` types. Between modules, imports go only through each module's `index.ts`.
 
@@ -111,17 +111,17 @@ Components are thin and carry no robotics logic.
 
 ## 3. Clean code and SOLID, each with its guardian
 
-| Principle | How it applies here | Guardian |
-|---|---|---|
-| S | One responsibility per module and per class: `OccupancyGrid`, `GridMapper` and ray tracing are separate | `max-lines` and the reviewer |
-| O | Extension through new implementations of a port, without touching `autonomy` | Dependency matrix |
-| L | Every `RobotDriver` passes the same contract suite | Contract tests |
-| I | Small ports: SLAM only sees scans and odometry | Types and the anti-cheat rule |
-| D | `autonomy` depends on ports; the concrete pieces are created in `run/` | Architecture test |
-| KISS / DRY / YAGNI | Interfaces only at the seams above | Reviewer |
-| Clean functions | At most 40 lines, at most 4 parameters (otherwise an options object), cyclomatic complexity at most 10, no boolean flags | ESLint |
-| No magic numbers | Every tunable lives in an `XxxConfig` with a default, a unit and a source | Reviewer |
-| Immutability | `readonly` messages; state lives only in classes with invariants | ESLint and the reviewer |
+| Principle          | How it applies here                                                                                                      | Guardian                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| S                  | One responsibility per module and per class: `OccupancyGrid`, `GridMapper` and ray tracing are separate                  | `max-lines` and the reviewer  |
+| O                  | Extension through new implementations of a port, without touching `autonomy`                                             | Dependency matrix             |
+| L                  | Every `RobotDriver` passes the same contract suite                                                                       | Contract tests                |
+| I                  | Small ports: SLAM only sees scans and odometry                                                                           | Types and the anti-cheat rule |
+| D                  | `autonomy` depends on ports; the concrete pieces are created in `run/`                                                   | Architecture test             |
+| KISS / DRY / YAGNI | Interfaces only at the seams above                                                                                       | Reviewer                      |
+| Clean functions    | At most 40 lines, at most 4 parameters (otherwise an options object), cyclomatic complexity at most 10, no boolean flags | ESLint                        |
+| No magic numbers   | Every tunable lives in an `XxxConfig` with a default, a unit and a source                                                | Reviewer                      |
+| Immutability       | `readonly` messages; state lives only in classes with invariants                                                         | ESLint and the reviewer       |
 
 **Conventions** (`docs/conventions.md`):
 
@@ -162,21 +162,21 @@ Components are thin and carry no robotics logic.
 
 `subagent-driven-development` and `using-git-worktrees` are not used, because of the decisions above.
 
-**Why our rules work:** the Superpowers base skill says *"User instructions (CLAUDE.md…) take precedence over skills"*. That is why everything project-specific goes in `CLAUDE.md`.
+**Why our rules work:** the Superpowers base skill says _"User instructions (CLAUDE.md…) take precedence over skills"_. That is why everything project-specific goes in `CLAUDE.md`.
 
 **The project layer, the only thing we build:**
 
 1. **`CLAUDE.md`, section "Superpowers overrides":**
    - Execute inline with `executing-plans`; `subagent-driven-development` only if the owner asks for it.
-   - **Stop after each task's commit.** Claude says what changed and how to see it, gives a 3-line explanation and an interview question, and waits for the owner's "sigue". This overrides Superpowers' *"do not pause between tasks"*.
+   - **Stop after each task's commit.** Claude says what changed and how to see it, gives a 3-line explanation and an interview question, and waits for the owner's "sigue". This overrides Superpowers' _"do not pause between tasks"_.
    - **No worktrees.** Work happens on the `fase-N-slug` branch, never on `main`.
    - Plans and designs go in the Superpowers default paths.
    - **Pre-approved TDD exceptions:** scaffolding and configuration files. For a guardrail, the "red test" is a planted violation that must fail; then it is removed.
    - A guardrail (lint rule, tsconfig, coverage threshold, dependency matrix) is never relaxed to get green. If one blocks, Claude stops and explains.
    - Phase-close checklist. First, update the vault note: progress, hours (Claude asks for them), decisions and status. Then write with the owner the `Conceptos/` note: a software analogy, the key idea and 3 interview questions.
 2. **Fixed blocks that `writing-plans` copies into every plan:**
-   - *Global Constraints:* the hard rules (anti-cheat, seeds, headless core, units and frames, ROS 2-shaped messages, allowed seams, no unapproved dependency) and the Definition of Done (`verify` green, TSDoc on the public API, coverage, a conventional commit with the co-author trailer).
-   - *Review Focus:* the SOLID and clean-code checklist from `docs/conventions.md`, tests that assert behaviour and not implementation, explicit seeds, property tests for invariants, the matrix and the scope.
+   - _Global Constraints:_ the hard rules (anti-cheat, seeds, headless core, units and frames, ROS 2-shaped messages, allowed seams, no unapproved dependency) and the Definition of Done (`verify` green, TSDoc on the public API, coverage, a conventional commit with the co-author trailer).
+   - _Review Focus:_ the SOLID and clean-code checklist from `docs/conventions.md`, tests that assert behaviour and not implementation, explicit seeds, property tests for invariants, the matrix and the scope.
 3. **`.claude/settings.json` (in git):** `enabledPlugins` and permissions.
    - **Allowed without asking:** `npm run *`, `git status`, `diff`, `log`, `show`, `add`, `commit`, `switch` and `branch`, and `npx ng generate`.
    - **Asks first:** `npm install`, `git push`, `git merge` and `gh pr`.
@@ -247,7 +247,7 @@ Components are thin and carry no robotics logic.
    - coverage below the threshold.
 3. **Superpowers and the project layer:**
    - **Loading:** in a repo session, Superpowers is loaded (its startup shows and its skills are used). In a vault session, it is not.
-   - **Plan:** the F0 plan is in `docs/superpowers/plans/`, with each task's red test and our *Global Constraints* and *Review Focus* blocks.
+   - **Plan:** the F0 plan is in `docs/superpowers/plans/`, with each task's red test and our _Global Constraints_ and _Review Focus_ blocks.
    - **Execution:**
      - In every code task, the test is seen failing before the implementation.
      - Claude stops after every task with its explanation and its question.
